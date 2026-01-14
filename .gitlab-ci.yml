@@ -1,0 +1,40 @@
+stages:
+  - build
+  - upgrade
+
+.upgrade_logger_template: &upgrade_logger_template
+  stage: upgrade
+  image: dtzar/helm-kubectl:latest
+  when: manual
+  tags:
+    - k8s
+  script:
+    - mkdir /root/.kube
+    - cat $KUBECONFIG > /root/.kube/config
+    - helm delete -n $NAMESPACE event-logger || true
+    - helm template event-logger ./charts/k8s-event-logger/ --values $VALUES_FILE --debug > rendered.yaml || true
+    - grep -n "PersistentVolumeClaim" -n rendered.yaml || true
+    - helm install event-logger ./charts/k8s-event-logger/ --namespace $NAMESPACE --values $VALUES_FILE
+    - kubectl -n $NAMESPACE get pods | grep logger
+    - kubectl -n $NAMESPACE get pvc | grep logger #- kubectl -n $NAMESPACE logs deployment/event-logger-k8s-event-logger
+    - helm list -n $NAMESPACE
+
+upgrade_k8s-event-logger_at_t07:
+  <<: *upgrade_logger_template
+  variables:
+    KUBECONFIG: $CAAS_T07_CLUSTER_KUBECONFIG # replace by your gitlab-ci variable with kubeconfig
+    NAMESPACE: default
+    VALUES_FILE: charts/k8s-event-logger/values.yaml
+
+build_k8s_event_logger:
+  stage: build
+  image: dtzar/helm-kubectl:latest
+  when: manual
+  tags:
+    - k8s
+  script:
+    - mkdir .kube
+    - cat $CAAS_T07_CLUSTER_KUBECONFIG > .kube/config
+    - docker build -f Dockerfile_logger -t $REGISTRY/k8s-event-logger . # put your docker registry into gitlab variables
+    - docker login -u $DEVOPS_ROBOTUSER -p $DEVOPS_TOKEN $DEVOPS_URL # credentials and registry from gitlab variables
+    - docker push $REGISTRY/k8s-event-logger

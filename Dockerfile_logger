@@ -1,0 +1,47 @@
+# Use the latest Alpine image
+FROM python:3.12-alpine
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apk update && apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    sqlite \
+    wget \
+    make \
+    python3 \
+    py3-pip
+
+RUN python3 --version
+RUN pip3 --version
+
+# Set working directory
+#WORKDIR /app
+RUN mkdir -p /app/data
+RUN mkdir -p /app/.kube
+
+# Copy application files
+ADD k8s_event_logger.py /app
+ADD .kube/config /app/.kube
+
+# Install Python dependencies
+RUN pip3 install --upgrade pip && \
+    pip3 install kubernetes pyyaml requests
+
+# add SQLite DB
+ADD data/events.db /app
+
+# Expose no ports (this is a background service)
+# EXPOSE 8080  # Todo: emplement external healthcheck
+
+# Set the entrypoint
+#ENTRYPOINT ["python3", "k8s_event_logger.py"]
+ADD k8s_event_logger.sh /app
+RUN chmod +x /app/k8s_event_logger.sh
+ENTRYPOINT ["sh", "/app/k8s_event_logger.sh"]
+#ENTRYPOINT ["sh"]

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: k8s-event-logger
+description: A Helm chart for Kubernetes Event Logger
+type: application
+version: 0.1.0
+appVersion: "1.0"
+

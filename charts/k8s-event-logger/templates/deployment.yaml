@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-event-logger
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: k8s-event-logger
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: k8s-event-logger
+  template:
+    metadata:
+      labels:
+        app: k8s-event-logger
+    spec:
+      {{- if .Values.pullsecret.enabled }}
+      imagePullSecrets:
+        - name: {{ .Values.pullsecret.name }}
+      {{- end }}
+      securityContext:
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        supplementalGroups: {{ .Values.podSecurityContext.supplementalGroups }}
+      containers:
+        - name: k8s-event-logger
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            capabilities:
+              drop: {{ .Values.securityContext.capabilities.drop }}
+            privileged: {{ .Values.securityContext.privileged }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+          env:
+            - name: CONFIG_PATH
+              value: "{{ .Values.configPath }}"
+            - name: ELASTIC_ENDPOINT
+              value: "{{ .Values.elastic.endpoint }}"
+            - name: ELASTIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-api-key
+                  key: apiKey
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: k8s-event-logger-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-event-logger-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}

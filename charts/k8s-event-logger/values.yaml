@@ -1,0 +1,49 @@
+replicaCount: 1
+
+image:
+  repository: _replace_it_by_your_registry_/k8s-event-logger
+  tag: latest
+  pullPolicy: Always
+
+namespace: ecare-ta
+configPath: /root/.kube/config
+
+elastic:
+  endpoint: "https://_put_your_elastic_endpoint_here:443"
+  apiKey: "_put_your_base64_encoded_elastic_apikey_here_"
+
+service:
+  port: 8080  # or whatever port your app uses
+
+pullsecret:
+  enabled: true
+  name: mtr
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClassName: nfs-storage
+
+resources: {}
+
+podSecurityContext:
+  runAsUser: 1001
+  fsGroup: 1001
+  runAsGroup: 1001
+  supplementalGroups: [1001]
+
+securityContext: {
+  capabilities: {
+    drop: [ALL]
+  },
+  privileged: false,
+  readOnlyRootFilesystem: true,
+  runAsNonRoot: true,
+  runAsUser: 1001,
+  runAsGroup: 1001,
+  allowPrivilegeEscalation: false
+}
+
+fullnameOverride: "event-logger"
+

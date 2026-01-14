@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: nfs-provisioner
+    volume.kubernetes.io/storage-provisioner: nfs-provisioner
+  creationTimestamp: "2026-01-14T08:15:56Z"
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: k8s-event-logger-pvc
+  namespace: ecare-ta
+  resourceVersion: "1172217034"
+  uid: 1d629d07-3bcf-4c41-9c5d-525c0071bbd2
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: nfs-storage
+  volumeMode: Filesystem
+  volumeName: pvc-1d629d07-3bcf-4c41-9c5d-525c0071bbd2
+status:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  phase: Bound

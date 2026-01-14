@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig
+data:
+  config: |
+    # Paste your kubeconfig content here or mount it securely via secret/volume
