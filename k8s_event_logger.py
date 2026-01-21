@@ -1,4 +1,4 @@
-# python3 k8s_event_logger.py --config-path ~/.kube_t07/config --namespace default --elastic-endpoint https://elastic_host:443 --api_key "base64"
+# python3 k8s_event_logger.py --config-path ~/.kube_t07/config --namespace default --elastic-endpoint https://elastic_host:443 --api_key "_put_here_base64_encoded_api_key_"
 import argparse
 import threading
 import sqlite3
